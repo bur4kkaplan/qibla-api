@@ -312,7 +312,7 @@
             const accLabel = selectedLang === 'tr' ? "Konum Doğruluğu" : "Location Accuracy";
             document.getElementById("accuracy").innerText = `${accLabel}: ±${acc.toFixed(1)} m`;
 
-            fetch(`http://127.0.0.1:5000/qibla?lat=${lat}&lon=${lon}&acc=${acc}`)
+            fetch(`https://qibla-api.onrender.com/qibla?lat=${lat}&lon=${lon}&acc=${acc}`),
             .then(res => res.json())
             .then(data => {
                 const errLabel = selectedLang === 'tr' ? "Tahmini Sapma" : "Estimated Error";
