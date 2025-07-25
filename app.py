@@ -10,12 +10,16 @@ kaaba_lat = 21.4225
 kaaba_lon = 39.8262
 geod = Geod(ellps="WGS84")
 
+@app.route("/")
+def home():
+    return "Qibla API is running. Use /qibla?lat=...&lon=...&acc=..."
+
 @app.route("/qibla")
 def qibla():
     try:
         lat = float(request.args.get("lat"))
         lon = float(request.args.get("lon"))
-        acc = float(request.args.get("acc", 5))  # GPS doğruluğu (metre), varsayılan 5m
+        acc = float(request.args.get("acc", 5))  # Varsayılan doğruluk 5m
     except:
         return jsonify({"error": "Geçersiz lat/lon/acc"}), 400
 
@@ -25,7 +29,7 @@ def qibla():
     # Açısal hata
     angle_error_deg = degrees(atan(acc / distance))
 
-    # Maksimum kabul edilen hata (örn: 10°'ye kadar yön tayini geçerli sayılır)
+    # Maksimum kabul edilen hata (örn: 10°)
     max_error_threshold = 10.0
 
     # Güven oranı
@@ -38,4 +42,4 @@ def qibla():
     })
 
 if __name__ == "__main__":
-    app.run()
+    app.run(host="0.0.0.0", port=5000)
