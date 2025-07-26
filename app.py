@@ -6,8 +6,7 @@ import os
 
 app = Flask(__name__)
 
-# Sadece senin frontend'ine CORS izni ver
-CORS(app, origins=["https://qibla-ui.onrender.com"])
+CORS(app, origins=["https://qibla.bur4kkaplan.com", "https://www.qibla.bur4kkaplan.com"])
 
 kaaba_coords = (21.4225, 39.8262)
 
