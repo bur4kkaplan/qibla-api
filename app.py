@@ -1,21 +1,21 @@
 from flask import Flask, request, jsonify
-from flask_cors import CORS, cross_origin
+from flask_cors import CORS
 from geopy.distance import geodesic
 from math import atan, degrees
 import os
 
 app = Flask(__name__)
-CORS(app)  # Geniş kapsamlı açıyoruz, sonra endpoint'e özel sınırlayacağız
+
+# Sadece senin frontend'ine CORS izni ver
+CORS(app, origins=["https://qibla-ui.onrender.com"])
 
 kaaba_coords = (21.4225, 39.8262)
 
 @app.route("/api/ping")
-@cross_origin(origins=["https://qibla-ui.onrender.com"])
 def ping():
     return "pong", 200
 
 @app.route("/qibla")
-@cross_origin(origins=["https://qibla-ui.onrender.com"])
 def qibla():
     try:
         lat = float(request.args.get("lat"))
