@@ -1,38 +1,50 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from pyproj import Geod
+from geopy.distance import geodesic
 from math import atan, degrees
 
 app = Flask(__name__)
 CORS(app)
 
-kaaba_lat = 21.4225
-kaaba_lon = 39.8262
-geod = Geod(ellps="WGS84")
-
-@app.route("/")
-def home():
-    return "Qibla API is running. Use /qibla?lat=...&lon=...&acc=..."
+kaaba_coords = (21.4225, 39.8262)
 
 @app.route("/qibla")
 def qibla():
     try:
         lat = float(request.args.get("lat"))
         lon = float(request.args.get("lon"))
-        acc = float(request.args.get("acc", 5))  # Varsayılan doğruluk 5m
+        acc = float(request.args.get("acc", 5))  # GPS doğruluğu (metre), varsayılan 5m
     except:
         return jsonify({"error": "Geçersiz lat/lon/acc"}), 400
 
-    azimuth, _, distance = geod.inv(lon, lat, kaaba_lon, kaaba_lat)
-    qibla_angle = (azimuth + 360) % 360
+    user_coords = (lat, lon)
 
-    # Açısal hata
+    # Qibla açısını hesapla (azimuth)
+    from geopy import Point
+    from geopy.distance import geodesic, great_circle
+
+    def calculate_initial_compass_bearing(pointA, pointB):
+        import math
+        lat1 = math.radians(pointA[0])
+        lat2 = math.radians(pointB[0])
+        diffLong = math.radians(pointB[1] - pointA[1])
+
+        x = math.sin(diffLong) * math.cos(lat2)
+        y = math.cos(lat1) * math.sin(lat2) - (math.sin(lat1)
+             * math.cos(lat2) * math.cos(diffLong))
+
+        initial_bearing = math.atan2(x, y)
+        initial_bearing = math.degrees(initial_bearing)
+        compass_bearing = (initial_bearing + 360) % 360
+
+        return compass_bearing
+
+    qibla_angle = calculate_initial_compass_bearing(user_coords, kaaba_coords)
+
+    distance = geodesic(user_coords, kaaba_coords).meters
     angle_error_deg = degrees(atan(acc / distance))
 
-    # Maksimum kabul edilen hata (örn: 10°)
     max_error_threshold = 10.0
-
-    # Güven oranı
     confidence = max(0.0, min(1.0, 1 - (angle_error_deg / max_error_threshold))) * 100
 
     return jsonify({
@@ -42,4 +54,4 @@ def qibla():
     })
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    app.run()
