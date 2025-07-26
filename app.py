@@ -8,6 +8,10 @@ CORS(app)
 
 kaaba_coords = (21.4225, 39.8262)
 
+@app.route("/api/ping")
+def ping():
+    return "pong", 200
+
 @app.route("/qibla")
 def qibla():
     try:
