@@ -4,7 +4,7 @@ from geopy.distance import geodesic
 from math import atan, degrees
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, origins=["https://qibla-ui.onrender.com"])
 
 kaaba_coords = (21.4225, 39.8262)
 
