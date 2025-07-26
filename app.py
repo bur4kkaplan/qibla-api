@@ -1,31 +1,30 @@
 from flask import Flask, request, jsonify
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin
 from geopy.distance import geodesic
 from math import atan, degrees
+import os
 
 app = Flask(__name__)
-CORS(app, origins=["https://qibla-ui.onrender.com"])
+CORS(app)  # Geniş kapsamlı açıyoruz, sonra endpoint'e özel sınırlayacağız
 
 kaaba_coords = (21.4225, 39.8262)
 
 @app.route("/api/ping")
+@cross_origin(origins=["https://qibla-ui.onrender.com"])
 def ping():
     return "pong", 200
 
 @app.route("/qibla")
+@cross_origin(origins=["https://qibla-ui.onrender.com"])
 def qibla():
     try:
         lat = float(request.args.get("lat"))
         lon = float(request.args.get("lon"))
-        acc = float(request.args.get("acc", 5))  # GPS doğruluğu (metre), varsayılan 5m
+        acc = float(request.args.get("acc", 5))
     except:
         return jsonify({"error": "Geçersiz lat/lon/acc"}), 400
 
     user_coords = (lat, lon)
-
-    # Qibla açısını hesapla (azimuth)
-    from geopy import Point
-    from geopy.distance import geodesic, great_circle
 
     def calculate_initial_compass_bearing(pointA, pointB):
         import math
@@ -34,8 +33,9 @@ def qibla():
         diffLong = math.radians(pointB[1] - pointA[1])
 
         x = math.sin(diffLong) * math.cos(lat2)
-        y = math.cos(lat1) * math.sin(lat2) - (math.sin(lat1)
-             * math.cos(lat2) * math.cos(diffLong))
+        y = math.cos(lat1) * math.sin(lat2) - (
+            math.sin(lat1) * math.cos(lat2) * math.cos(diffLong)
+        )
 
         initial_bearing = math.atan2(x, y)
         initial_bearing = math.degrees(initial_bearing)
@@ -44,7 +44,6 @@ def qibla():
         return compass_bearing
 
     qibla_angle = calculate_initial_compass_bearing(user_coords, kaaba_coords)
-
     distance = geodesic(user_coords, kaaba_coords).meters
     angle_error_deg = degrees(atan(acc / distance))
 
@@ -58,6 +57,5 @@ def qibla():
     })
 
 if __name__ == "__main__":
-    import os
-    port = int(os.environ.get("PORT", 5000))  # Railway'de 8080 olur
+    port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
